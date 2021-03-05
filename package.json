@@ -1,0 +1,22 @@
+{
+  "name": "tourpage",
+  "version": "1.0.0",
+  "description": "learning node, express, and mongodb",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dnkc/express-node-practice.git"
+  },
+  "author": "dnkc",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dnkc/express-node-practice/issues"
+  },
+  "homepage": "https://github.com/dnkc/express-node-practice#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
