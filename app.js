@@ -1,17 +1,18 @@
 const express = require('express');
-
+const fs = require('fs');
 const app = express();
+const morgan = require('morgan');
+require('dotenv').config({ path: (__dirname, './config.env') });
+//middleware
+app.use(express.json());
+app.use(morgan('dev'));
 
-PORT = process.env.PORT || 5000;
+app.use(express.static(`${__dirname}/public`));
 
-app.get('/', (req, res) => {
-  res.status(200).json({ message: 'Hello from the server', app: 'NaTours' });
-});
+// routes
+const tourRouter = require('./routes/tourRoutes');
+app.use('/api/v1/tours', tourRouter);
+const userRouter = require('./routes/userRoutes');
+app.use('/api/v1/users', userRouter);
 
-app.post('/', (req, res) => {
-  res.send('You can post to this endpoint!');
-});
-
-app.listen(PORT, () => {
-  console.log(`Listening on ${PORT}`);
-});
+module.exports = app;
