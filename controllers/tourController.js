@@ -114,7 +114,7 @@ const updateTour = async (req, res) => {
   try {
     const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
       new: true, // sends updated document to client
-      runValidators: true,
+      runValidators: true, // runs validators upon update of document (min, max length, etc)
     });
 
     res.status(200).json({
@@ -193,6 +193,7 @@ const getTourStats = async (req, res) => {
     ]);
     res.status(200).json({
       status: 'success',
+      results: stats.length,
       data: {
         stats,
       },
@@ -208,11 +209,52 @@ const getTourStats = async (req, res) => {
 // get monthly tours
 const getMonthlyPlan = async (req, res) => {
   try {
-    const year = req.params.year * 1;
-    const plan = await Tour.aggregate([]);
+    const year = req.params.year * 1; // 2021
+    const plan = await Tour.aggregate([
+      {
+        // deconstructs array fields from input docs and output one doc for each element of array
+        $unwind: '$startDates',
+      },
+      {
+        // filter between these dates below
+        $match: {
+          startDates: {
+            $gte: new Date(`${year}-01-01`),
+            $lte: new Date(`${year}-12-31`),
+          },
+        },
+      },
+      {
+        $group: {
+          // separate them by month
+          _id: { $month: '$startDates' },
+          // count how many tours per month
+          numTourStarts: { $sum: 1 },
+          // which tours are in each month
+          tours: { $push: '$name' },
+        },
+      },
+      {
+        $addFields: {
+          month: '$_id',
+        },
+      },
+      {
+        $project: {
+          _id: 0, // id will no longer show up, if 1 then it would
+        },
+      },
+      {
+        $sort: { numTourStarts: -1 }, // sort by number of tours starting per month, -1 for descending
+      },
+      {
+        $limit: 12, // limits the amount of outputs
+      },
+    ]);
 
     res.status(200).json({
       status: 'success',
+      results: plan.length,
       data: {
         plan,
       },
