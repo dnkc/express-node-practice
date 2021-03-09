@@ -3,6 +3,7 @@ const db = require('./db');
 
 const { connectDB } = db;
 connectDB();
+
 PORT = process.env.PORT || 8000;
 // server start
 app.listen(PORT, () => {
