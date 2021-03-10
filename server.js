@@ -9,3 +9,5 @@ PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
   console.log(`Listening on ${PORT}`);
 });
+
+// fundamental aspect of debugging: set break points
