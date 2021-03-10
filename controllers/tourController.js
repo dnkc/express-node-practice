@@ -18,6 +18,37 @@ const aliasTopTours = (req, res, next) => {
   next();
 };
 
+const checkForIDError = (tour, type) => {
+  if (!tour) {
+    return next(new AppError('No tour found with that ID', 404));
+  } else if (type === 'upd') {
+    res.status(200).json({
+      status: 'success',
+      data: {
+        tour,
+      },
+    });
+  } else if (type === 'del') {
+    res.status(204).json({
+      status: 'success',
+      data: {
+        tour,
+      },
+    });
+  } else if (type === 'getTour') {
+    res.status(200).json({
+      // status: 'success',
+      // data: {
+      //   tour,
+      // },
+      status: 'success',
+      data: {
+        tour,
+      },
+    });
+  }
+};
+
 const getAllTours = catchAsync(async (req, res, next) => {
   console.log(req.query);
   // EXECUTE A QUERY
@@ -50,24 +81,8 @@ const getAllTours = catchAsync(async (req, res, next) => {
 const getTour = catchAsync(async (req, res, next) => {
   // const id = req.params.id * 1; // the *1 converts it to an integer
   // const tour = tours.find((el) => el.id === id);
-  const tour = await Tour.findById(req.params.id).exec(function (err, tour) {
-    if (!tour) {
-      return next(new AppError('No tour found with that ID', 404));
-    } else {
-      // Tour.findOne({_id: req.params.id})
-
-      res.status(200).json({
-        // status: 'success',
-        // data: {
-        //   tour,
-        // },
-        status: 'success',
-        data: {
-          tour,
-        },
-      });
-    }
-  });
+  const tour = await Tour.findById(req.params.id);
+  checkForIDError(tour, 'getTour');
 });
 
 const createTour = catchAsync(async (req, res, next) => {
@@ -91,39 +106,16 @@ const createTour = catchAsync(async (req, res, next) => {
 });
 
 const deleteTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findByIdAndDelete(req.params.id).exec(function (
-    err,
-    tour
-  ) {
-    if (!tour) {
-      return next(new AppError('No tour found with that ID', 404));
-    } else {
-      res.status(204).json({
-        status: 'success',
-        data: {
-          tour,
-        },
-      });
-    }
-  });
+  const tour = await Tour.findByIdAndDelete(req.params.id);
+  checkForIDError(tour, 'del');
 });
 
 const updateTour = catchAsync(async (req, res, next) => {
   const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
     new: true, // sends updated document to client
     runValidators: true, // runs validators upon update of document (min, max length, etc)
-  }).exec(function (err, tour) {
-    if (!tour) {
-      return next(new AppError('No tour found with that ID', 404));
-    } else {
-      res.status(200).json({
-        status: 'success',
-        data: {
-          tour,
-        },
-      });
-    }
   });
+  checkForIDError(tour, 'upd');
 });
 
 // const testTour = new Tour({
