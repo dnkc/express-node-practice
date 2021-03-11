@@ -18,7 +18,7 @@ const aliasTopTours = (req, res, next) => {
   next();
 };
 
-const checkForIDError = (tour, type) => {
+const checkForIDError = (res, tour, type) => {
   if (!tour) {
     return next(new AppError('No tour found with that ID', 404));
   } else if (type === 'upd') {
@@ -82,7 +82,7 @@ const getTour = catchAsync(async (req, res, next) => {
   // const id = req.params.id * 1; // the *1 converts it to an integer
   // const tour = tours.find((el) => el.id === id);
   const tour = await Tour.findById(req.params.id);
-  checkForIDError(tour, 'getTour');
+  checkForIDError(res, tour, 'getTour');
 });
 
 const createTour = catchAsync(async (req, res, next) => {
@@ -107,7 +107,7 @@ const createTour = catchAsync(async (req, res, next) => {
 
 const deleteTour = catchAsync(async (req, res, next) => {
   const tour = await Tour.findByIdAndDelete(req.params.id);
-  checkForIDError(tour, 'del');
+  checkForIDError(res, tour, 'del');
 });
 
 const updateTour = catchAsync(async (req, res, next) => {
@@ -115,7 +115,7 @@ const updateTour = catchAsync(async (req, res, next) => {
     new: true, // sends updated document to client
     runValidators: true, // runs validators upon update of document (min, max length, etc)
   });
-  checkForIDError(tour, 'upd');
+  checkForIDError(res, tour, 'upd');
 });
 
 // const testTour = new Tour({
