@@ -24,6 +24,7 @@ const signUp = catchAsync(async (req, res, next) => {
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
     passwordChangedAt: req.body.passwordChangedAt,
+    role: req.body.role,
   });
 
   const token = signToken(newUser._id);
@@ -96,8 +97,39 @@ const isAuthenticated = catchAsync(async (req, res, next) => {
   next();
 });
 
+// normally CAN NOT pass arguments to middleware
+const restrictTo = (...roles) => {
+  // roles is an array i.e., ['admin', 'lead-guide']. role='user' therefore user does not have permission
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new AppError('You do not have permission to perform this action', 403)
+      );
+    }
+    next();
+  };
+};
+
+const forgotPassword = catchAsync(async (req, res, next) => {
+  // 1) Get user based on POSTed email
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return next(new AppError('There is no user with eamil address', 404));
+  }
+  // 2) generate random reset token
+  const resetToken = user.createPasswordResetToken();
+  // above line only modifies user info, must save
+  await user.save({ validateBeforeSave: false });
+  // 3) Send it to users email
+});
+
+const resetPassword = (req, res, next) => {};
+
 module.exports = {
   signUp,
   login,
   isAuthenticated,
+  restrictTo,
+  forgotPassword,
+  resetPassword,
 };
