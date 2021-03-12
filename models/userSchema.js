@@ -34,6 +34,7 @@ const userSchema = new mongoose.Schema({
       message: 'Passwords are not the same',
     },
   },
+  passwordChangedAt: Date,
 });
 
 //password encryption
@@ -57,6 +58,23 @@ userSchema.methods.correctPassword = async function (
 ) {
   // this.password is not possible because of select: false in model
   return await bcrypt.compare(candidatePassword, userPassword); // true if passwords are same
+};
+
+// check if password is changed after token being issued
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+  console.log('entered changedPasswordAfter');
+
+  if (this.passwordChangedAt) {
+    // if it does not exist, user has never changed their password
+    const changedTimestamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10
+    ); // divide by 1000 to get it to milliseconds, specify base 10
+    return JWTTimestamp < changedTimestamp; // TRUE IF PASSWORD CHANGED AFTER JWT ISSUED
+  }
+
+  // FALSE MEANS THE PASSWORD HAS NOT BEEN CHANGED
+  return false;
 };
 
 const User = mongoose.model('User', userSchema);

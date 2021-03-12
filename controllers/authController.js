@@ -1,3 +1,4 @@
+const { promisify } = require('util'); // allows you to promise-ify methods that are not promises
 const UserSchema = require('../models/userSchema');
 const { User } = UserSchema;
 const catchAsync = require('../utils/catchAsync');
@@ -22,6 +23,7 @@ const signUp = catchAsync(async (req, res, next) => {
     email: req.body.email,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
+    passwordChangedAt: req.body.passwordChangedAt,
   });
 
   const token = signToken(newUser._id);
@@ -56,7 +58,46 @@ const login = catchAsync(async (req, res, next) => {
   });
 });
 
+const isAuthenticated = catchAsync(async (req, res, next) => {
+  // 1) Getting token and check if it exists
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  // 2) Token verification
+  if (!token) {
+    return next(
+      new AppError('You are not logged in! Please log in to get access', 401)
+    );
+  }
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+  console.log('decoded', decoded);
+  // 3) Check if user still exists
+  // check if user is removed or password changed after issuing token
+  const currentUser = await User.findById(decoded.id);
+  if (!currentUser) {
+    return next(
+      new AppError('The user belonging to this token no longer exists.', 401)
+    );
+  }
+  // 4) Check if user changed password after the token was issued
+  if (currentUser.changedPasswordAfter(decoded.iat)) {
+    return next(
+      new AppError('User recently changed password! Please log in again.', 401)
+    );
+  }
+
+  // grant access to protected route
+  req.user = currentUser; // allows data to be available at a later point
+  next();
+});
+
 module.exports = {
   signUp,
   login,
+  isAuthenticated,
 };

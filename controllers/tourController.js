@@ -50,7 +50,7 @@ const checkForIDError = (res, tour, type) => {
 };
 
 const getAllTours = catchAsync(async (req, res, next) => {
-  console.log(req.query);
+  // console.log(req.query);
   // EXECUTE A QUERY
   const features = new APIFeatures(Tour.find(), req.query)
     .filter()
