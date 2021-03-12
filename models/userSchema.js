@@ -21,6 +21,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please provide a password'],
     minlength: 8,
+    select: false, // will never show up on any return
   },
   passwordConfirm: {
     type: String,
@@ -47,6 +48,16 @@ userSchema.pre('save', async function (next) {
   // it is required as input, but that does not mean it is required to be in the DB
   next();
 });
+
+// check if password inputted matches hashed password in db
+// instance middleware
+userSchema.methods.correctPassword = async function (
+  candidatePassword,
+  userPassword
+) {
+  // this.password is not possible because of select: false in model
+  return await bcrypt.compare(candidatePassword, userPassword); // true if passwords are same
+};
 
 const User = mongoose.model('User', userSchema);
 
