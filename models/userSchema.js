@@ -43,6 +43,19 @@ const userSchema = new mongoose.Schema({
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
+  active: {
+    type: Boolean,
+    default: true,
+    select: false,
+  },
+});
+
+// query middleware
+userSchema.pre(/^find/, function (next) {
+  // this points to the current query
+  // returns the document only if active is set to true
+  this.find({ active: { $ne: false } });
+  next();
 });
 
 //password encryption
@@ -55,6 +68,14 @@ userSchema.pre('save', async function (next) {
   //delete confirm password field from database
   this.passwordConfirm = undefined; // only need password confirmation for signup validation, do not need to store it in the database
   // it is required as input, but that does not mean it is required to be in the DB
+  next();
+});
+
+// edit passwordChangedAt property once token is used to reset password
+userSchema.pre('save', function (next) {
+  if (!this.isModified('password') || this.isNew) return next();
+
+  this.passwordChangedAt = Date.now() - 1000; // minus one second
   next();
 });
 
