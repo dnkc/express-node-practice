@@ -6,15 +6,66 @@ const morgan = require('morgan');
 require('dotenv').config({ path: (__dirname, './config.env') });
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
+// express-rate-limit prevents too many requests from one IP address
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const hpp = require('hpp');
 
 //middleware
 // middleware is executed in order it is placed
-app.use(express.json());
-app.use(morgan('dev'));
+// 1) GLOBAL MIDDLEWARE
+
+// best to use helmet at beginning of stack
+// helmet is for setting security HTTP Headers
+app.use(helmet());
+
+// development logging of routes
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+
+// limits requests from same IP for API
+const limiter = rateLimit({
+  max: 100, // 100 requests per hour
+  windowMs: 60 * 60 * 1000, // 60 minutes 60 seconds 1000 ms
+  message: 'Too many requests from this IP, please try again in an hour.',
+});
+
+app.use('/api', limiter); // affects only routes that start with /api
+
+// body parser, reading data from body into req.body
+app.use(
+  express.json({
+    // can limit amount of data that comes into body
+    limit: '10kb', // does not accept anything larger than 10kb
+  })
+);
+
+// data sanitzation against NoSQL query injection
+app.use(mongoSanitize()); // looks at request, request body, and request params and removes all $ and . characters
+// data sanitzation against XSS
+app.use(xss()); // cleans user input from malicious HTML and JS code
+
+// prevents http parameter pollution
+app.use(
+  hpp({
+    whitelist: [
+      'duration',
+      'ratingsAverage',
+      'ratingsQuantity',
+      'maxGroupSize',
+      'difficulty',
+      'price',
+    ], // will allow multiple duration fields in route, not others (such as sort)
+  })
+);
+
+// serving static files
 app.use(express.static(`${__dirname}/public`));
 
 // ROUTES
-
 // REST routes
 //tours
 const tourRouter = require('./routes/tourRoutes');

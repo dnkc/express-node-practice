@@ -8,8 +8,23 @@ const AppError = require('../utils/appError');
 const crypto = require('crypto');
 
 const createSendToken = (user, statusCode, res) => {
-  console.log('createsendtoken');
   const token = signToken(user._id);
+  const cookieOptions = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000 // turn days into milliseconds
+    ),
+    // secure: true, // cookie only sent on encrypted connection (https)
+    httpOnly: true, // cannot be accessed or modified by browser (prevents cross site scripting attacks)
+  };
+  if (process.env.NODE_ENV === 'production') {
+    cookieOptions.secure = true;
+  }
+
+  res.cookie('jwt', token, cookieOptions);
+
+  // removes password from res output only
+  user.password = undefined;
+
   res.status(statusCode).json({
     status: 'success',
     token,
