@@ -73,6 +73,9 @@ app.use('/api/v1/tours', tourRouter);
 //users
 const userRouter = require('./routes/userRoutes');
 app.use('/api/v1/users', userRouter);
+//reviews
+const reviewRouter = require('./routes/reviewRoutes');
+app.use('/api/v1/reviews', reviewRouter);
 
 // bad route middleware
 // to handle all routes (post, get, etc) can use app.all with * to catch all routes

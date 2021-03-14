@@ -135,7 +135,7 @@ const tourSchema = new mongoose.Schema(
 // must explicitly declare you want the virtual properties in the output
 // can not be used in query as it is not part of the DB
 tourSchema.virtual('durationWeeks').get(function () {
-  return this.duration / 7;
+  return (this.duration = parseInt(this.duration / 7));
 });
 
 // DOCUMENT MIDDLEWARE
@@ -174,6 +174,15 @@ tourSchema.pre(/^find/, function (next) {
   // this is a query object
   this.find({ secretTour: { $ne: true } });
   // this.start = Date.now();
+  next();
+});
+
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    // using populate creates a new query
+    path: 'guides',
+    select: '-__v -passwordChangedAt',
+  });
   next();
 });
 

@@ -26,17 +26,6 @@ const checkForIDError = (res, tour, next, type) => {
         tour,
       },
     });
-  } else if (type === 'getTour') {
-    res.status(200).json({
-      // status: 'success',
-      // data: {
-      //   tour,
-      // },
-      status: 'success',
-      data: {
-        tour,
-      },
-    });
   } else if (type === 'del') {
     res.status(204).json({
       status: 'success',
@@ -82,7 +71,20 @@ const getTour = catchAsync(async (req, res, next) => {
   // const id = req.params.id * 1; // the *1 converts it to an integer
   // const tour = tours.find((el) => el.id === id);
   const tour = await Tour.findById(req.params.id);
-  checkForIDError(res, tour, next, 'getTour');
+  console.log(tour);
+  if (!tour) {
+    return next(new AppError('No tour found with that ID', 404));
+  }
+  res.status(200).json({
+    // status: 'success',
+    // data: {
+    //   tour,
+    // },
+    status: 'success',
+    data: {
+      tour,
+    },
+  });
 });
 
 const createTour = catchAsync(async (req, res, next) => {
