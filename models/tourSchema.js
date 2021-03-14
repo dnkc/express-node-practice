@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
 const validator = require('validator');
+// const userSchema = require('./userSchema');
+// const { User } = userSchema;
 // validation
 // puts out errors for missing required values ("fat/thin model")
 
@@ -86,7 +88,40 @@ const tourSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-  }, // options go here, can choose when to output virtual property
+    // mongodb supports geospatial data out of the box
+    startLocation: {
+      // GeoJSON
+      type: {
+        type: String,
+        default: 'Point', // can specify lines, polygons, etc
+        enum: ['Point'],
+      },
+      coordinates: [Number], // an array of numbers (longitude, latitude, usually given as latitude and longtitude, esp on google maps)
+      address: String,
+      descripton: String,
+    },
+    locations: [
+      // must be an array of objects to be able to be embedded in another document
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: 'Point',
+        },
+        coordinates: [Number],
+        address: String,
+        descripton: String,
+        day: Number,
+      },
+    ],
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+      },
+    ], // embed by reference - use only id's
+  },
+  // options go here, can choose when to output virtual property
   {
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
@@ -106,10 +141,10 @@ tourSchema.virtual('durationWeeks').get(function () {
 // DOCUMENT MIDDLEWARE
 // pre middleware runs before a specified event (on this one, runs on .save and .create but NOT .createMany, insert, findByID, etc )
 // pre save middle ware has next available
-// tourSchema.pre('save', function (next) {
-//   this.slug = slugify(this.name, { lower: true });
-//   next();
-// });
+tourSchema.pre('save', function (next) {
+  this.slug = slugify(this.name, { lower: true });
+  next();
+});
 
 // //can have multiple pre middleware for same "hook" (i.e., "save")
 // tourSchema.pre('save', function (next) {
@@ -121,10 +156,15 @@ tourSchema.virtual('durationWeeks').get(function () {
 // has access to document saved to db as well as next
 // processed after all other pre middleware has finished
 // does not run for update
-tourSchema.post('save', function (doc, next) {
-  console.log(doc);
-  next();
-});
+// tourSchema.post('save', async function (doc, next) {
+//   console.log(doc);
+//   // embeds document of a user provided as a guide into the tour
+// embedded document does not update when user info is changed, i.e. from guide to lead-guide, etc. better to reference
+//   // only works for save
+//   const guidesPromises = this.guides.map(async (id) => await User.findById(id));
+//   this.guides = await Promise.all(guidesPromises);
+//   next();
+// });
 
 // QUERY MIDDLEWARE
 // i.e., before a .find hook is run
