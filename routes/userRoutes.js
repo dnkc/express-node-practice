@@ -23,6 +23,12 @@ router.patch('/resetPassword/:token', resetPassword);
 router.patch('/updateMyPassword', isAuthenticated, updatePassword);
 router.patch('/updateMe', isAuthenticated, userController.updateMe);
 router.delete('/deleteMe', isAuthenticated, userController.deleteMe);
+router.get(
+  '/me',
+  isAuthenticated,
+  userController.getMe,
+  userController.getUser
+);
 
 router
   .route('/')
@@ -33,6 +39,6 @@ router
   .route('/:id')
   .get(tourController.getUser)
   .patch(tourController.updateUser)
-  .delete(tourController.deleteUser);
+  .delete(isAuthenticated, restrictTo('admin'), tourController.deleteUser);
 
 module.exports = router;

@@ -6,15 +6,22 @@ const authController = require('../controllers/authController');
 const { isAuthenticated, restrictTo } = authController;
 
 const reviewController = require('../controllers/reviewController');
-const { getAllReviews, getReview, createReview } = reviewController;
+const {
+  getAllReviews,
+  getReview,
+  createReview,
+  deleteReview,
+  updateReview,
+  setTourUserIds,
+} = reviewController;
 
 router
   .route('/')
   .get(getAllReviews)
   // POST /tour/:tourId/reviews
   // POST /reviews
-  .post(isAuthenticated, restrictTo('user'), createReview);
+  .post(isAuthenticated, restrictTo('user'), setTourUserIds, createReview);
 
-router.route('/:id').get(getReview);
+router.route('/:id').get(getReview).delete(deleteReview).patch(updateReview);
 
 module.exports = router;

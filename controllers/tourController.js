@@ -3,12 +3,13 @@
 // const tours = JSON.parse(
 //   fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
 // );
-const API_FEATURES = require('../utils/apiFeatures');
-const { APIFeatures } = API_FEATURES;
+
 const tourSchema = require('../models/tourSchema');
 const { Tour } = tourSchema;
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const Factory = require('./handleFactory');
+const { deleteOne, updateOne, createOne, getOne, getAll } = Factory;
 
 // top 5 cheapest
 const aliasTopTours = (req, res, next) => {
@@ -18,106 +19,62 @@ const aliasTopTours = (req, res, next) => {
   next();
 };
 
-const getAllTours = catchAsync(async (req, res, next) => {
-  // console.log(req.query);
-  // EXECUTE A QUERY
-  const features = new APIFeatures(Tour.find(), req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
-  // can now copy this to other uses, and just do not include one (say .sort or .filter)
-  // can chain methods bc this is returned in each
+// const getAllTours = catchAsync(async (req, res, next) => {
+//   // console.log(req.query);
+//   // EXECUTE A QUERY
+//   const features = new APIFeatures(Tour.find(), req.query)
+//     .filter()
+//     .sort()
+//     .limitFields()
+//     .paginate();
+//   // can now copy this to other uses, and just do not include one (say .sort or .filter)
+//   // can chain methods bc this is returned in each
 
-  const allTours = await features.query;
-  // possibly queries: query.sort.select().skip().limit()
+//   const allTours = await features.query;
+//   // possibly queries: query.sort.select().skip().limit()
 
-  // SEND RESPONSE
-  res.status(200).json({
-    status: 'success',
-    results: allTours.length,
-    data: {
-      tours: allTours,
-    },
-    // results: tours.length,
-    // data: {
-    //   tours,
-    // },
-  });
-});
+//   // SEND RESPONSE
+//   res.status(200).json({
+//     status: 'success',
+//     results: allTours.length,
+//     data: {
+//       tours: allTours,
+//     },
+//     // results: tours.length,
+//     // data: {
+//     //   tours,
+//     // },
+//   });
+// });
+const getAllTours = getAll(Tour);
 
 // route handlers
-const getTour = catchAsync(async (req, res, next) => {
-  // const id = req.params.id * 1; // the *1 converts it to an integer
-  // const tour = tours.find((el) => el.id === id);
-  const tour = await Tour.findById(req.params.id).populate('reviews');
-  console.log(tour);
-  if (!tour) {
-    return next(new AppError('No tour found with that ID', 404));
-  }
-  res.status(200).json({
-    // status: 'success',
-    // data: {
-    //   tour,
-    // },
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-});
+// const getTour = catchAsync(async (req, res, next) => {
+//   // const id = req.params.id * 1; // the *1 converts it to an integer
+//   // const tour = tours.find((el) => el.id === id);
+//   const tour = await Tour.findById(req.params.id).populate('reviews');
+//   console.log(tour);
+//   if (!tour) {
+//     return next(new AppError('No tour found with that ID', 404));
+//   }
+//   res.status(200).json({
+//     // status: 'success',
+//     // data: {
+//     //   tour,
+//     // },
+//     status: 'success',
+//     data: {
+//       tour,
+//     },
+//   });
+// });
+const getTour = getOne(Tour, 'reviews');
 
-const createTour = catchAsync(async (req, res, next) => {
-  const newTour = await Tour.create(req.body);
-  newTour.save();
-  res.status(201).json({
-    status: 'success',
-    data: {
-      tour: newTour,
-    },
-  });
+const createTour = createOne(Tour);
 
-  // try {
+const deleteTour = deleteOne(Tour);
 
-  // } catch (err) {
-  //   res.status(400).json({
-  //     status: 'fail',
-  //     message: err,
-  //   });
-  // }
-});
-
-const deleteTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findByIdAndDelete(req.params.id);
-  if (!tour) {
-    return next(new AppError('No tour found with that ID', 404));
-  }
-
-  res.status(204).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-});
-
-const updateTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-    new: true, // sends updated document to client
-    runValidators: true, // runs validators upon update of document (min, max length, etc)
-  });
-
-  if (!tour) {
-    return next(new AppError('No tour found with that ID', 404));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-});
+const updateTour = updateOne(Tour);
 
 // const testTour = new Tour({
 //   name: 'The Park Camper1',
