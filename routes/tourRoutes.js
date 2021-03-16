@@ -1,5 +1,4 @@
 const express = require('express');
-
 const router = express.Router();
 const tourController = require('../controllers/tourController');
 const {
@@ -16,6 +15,19 @@ const {
 } = tourController;
 const authController = require('../controllers/authController');
 const { isAuthenticated, restrictTo } = authController;
+// const reviewController = require('../controllers/reviewController');
+// const { createReview } = reviewController;
+const reviewRouter = require('./reviewRoutes');
+// NESTED ROUTES EXAMPLE:
+// POST /tour/:user_id/reviews
+// GET /tour/:tour_id/reviews
+// GET /tour/:tour_id/reviews/:review_id
+// not best practice as it creates a review under tour routes - use review router instead
+// router
+//   .route('/:tourId/reviews')
+//   .post(isAuthenticated, restrictTo('user'), createReview);
+
+router.use('/:tourId/reviews', reviewRouter);
 
 // if route is very popular & commonly used, can use below:
 // i.e., localhost:8000/api/v1/tours?limit=5&sort=-ratingsAverange,price (top 5 rated and cheapest)

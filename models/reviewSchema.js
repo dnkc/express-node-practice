@@ -15,20 +15,17 @@ const reviewSchema = new mongoose.Schema(
       type: Date,
       default: Date.now(),
     },
-    tour: [
-      {
-        type: mongoose.Schema.ObjectId,
-        ref: 'tours',
-        required: [true, 'Review must belong to a tour'],
-      },
-    ],
-    user: [
-      {
-        type: mongoose.Schema.ObjectId,
-        ref: 'users',
-        required: [true, 'A review must belong to a user'],
-      },
-    ],
+    tour: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'tours',
+      required: [true, 'Review must belong to a tour'],
+    },
+
+    user: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'User',
+      required: [true, 'A review must belong to a user'],
+    },
   },
   // options go here, can choose when to output virtual property
   {
@@ -37,10 +34,21 @@ const reviewSchema = new mongoose.Schema(
   }
 );
 
-// reviewSchema.pre(/^find/, function (next) {
-//   this.populate('tour');
-//   next();
-// });
+reviewSchema.pre(/^find/, function (next) {
+  // this.populate({
+  //   // 2 queries, one for each
+  //   path: 'tour',
+  //   select: 'name',
+  // }).populate({
+  //   path: 'user',
+  //   select: 'name photo',
+  // });
+  this.populate({
+    path: 'user',
+    select: 'name photo',
+  });
+  next();
+});
 
 const Review = mongoose.model('Review', reviewSchema);
 

@@ -138,6 +138,13 @@ tourSchema.virtual('durationWeeks').get(function () {
   return (this.duration = parseInt(this.duration / 7));
 });
 
+//virtual populate
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour', // in the review model, the field where the id of the tour is stored,
+  localField: '_id', // connects foreignfield to local field
+});
+
 // DOCUMENT MIDDLEWARE
 // pre middleware runs before a specified event (on this one, runs on .save and .create but NOT .createMany, insert, findByID, etc )
 // pre save middle ware has next available

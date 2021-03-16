@@ -10,6 +10,7 @@ const {
   resetPassword,
   updatePassword,
   isAuthenticated,
+  restrictTo,
 } = authController;
 const userController = require('../controllers/userController');
 

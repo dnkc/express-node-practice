@@ -18,26 +18,6 @@ const aliasTopTours = (req, res, next) => {
   next();
 };
 
-const checkForIDError = (res, tour, next, type) => {
-  if (type === 'upd') {
-    res.status(200).json({
-      status: 'success',
-      data: {
-        tour,
-      },
-    });
-  } else if (type === 'del') {
-    res.status(204).json({
-      status: 'success',
-      data: {
-        tour,
-      },
-    });
-  } else if (!tour) {
-    return next(new AppError('No tour found with that ID', 404));
-  }
-};
-
 const getAllTours = catchAsync(async (req, res, next) => {
   // console.log(req.query);
   // EXECUTE A QUERY
@@ -70,7 +50,7 @@ const getAllTours = catchAsync(async (req, res, next) => {
 const getTour = catchAsync(async (req, res, next) => {
   // const id = req.params.id * 1; // the *1 converts it to an integer
   // const tour = tours.find((el) => el.id === id);
-  const tour = await Tour.findById(req.params.id);
+  const tour = await Tour.findById(req.params.id).populate('reviews');
   console.log(tour);
   if (!tour) {
     return next(new AppError('No tour found with that ID', 404));
@@ -109,7 +89,16 @@ const createTour = catchAsync(async (req, res, next) => {
 
 const deleteTour = catchAsync(async (req, res, next) => {
   const tour = await Tour.findByIdAndDelete(req.params.id);
-  checkForIDError(res, tour, next, 'del');
+  if (!tour) {
+    return next(new AppError('No tour found with that ID', 404));
+  }
+
+  res.status(204).json({
+    status: 'success',
+    data: {
+      tour,
+    },
+  });
 });
 
 const updateTour = catchAsync(async (req, res, next) => {
@@ -117,7 +106,17 @@ const updateTour = catchAsync(async (req, res, next) => {
     new: true, // sends updated document to client
     runValidators: true, // runs validators upon update of document (min, max length, etc)
   });
-  checkForIDError(res, tour, next, 'upd');
+
+  if (!tour) {
+    return next(new AppError('No tour found with that ID', 404));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      tour,
+    },
+  });
 });
 
 // const testTour = new Tour({
