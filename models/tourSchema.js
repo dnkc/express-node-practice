@@ -136,7 +136,8 @@ const tourSchema = new mongoose.Schema(
 // compound index
 tourSchema.index({ price: 1, ratingsAverage: -1 });
 tourSchema.index({ slug: 1 });
-
+// geospatial index requires 2d index for points on sphere
+tourSchema.index({ startLocation: '2dsphere' });
 // virtual properties: i.e., conversions
 // virtual properties are NOT stored on the database
 // below: calculate how many weeks per tour
@@ -213,16 +214,16 @@ tourSchema.pre(/^find/, function (next) {
 // AGGREGATION MIDDLEWARE
 // i.e. excluding secret tours from aggregations
 // easier to use middleware as opposed to repeating code in each aggregation function in controller
-tourSchema.pre('aggregate', function (next) {
-  //append $match to beginning of aggregate pipeline array
-  this.pipeline().unshift({
-    $match: {
-      secretTour: { $ne: true },
-    },
-  });
-  // console.log(this.pipeline());
-  next();
-});
+// tourSchema.pre('aggregate', function (next) {
+//   //append $match to beginning of aggregate pipeline array
+//   this.pipeline().unshift({
+//     $match: {
+//       secretTour: { $ne: true },
+//     },
+//   });
+//   // console.log(this.pipeline());
+//   next();
+// });
 
 const Tour = mongoose.model('tours', tourSchema);
 

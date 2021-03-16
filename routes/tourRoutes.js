@@ -10,6 +10,8 @@ const {
   aliasTopTours,
   getTourStats,
   getMonthlyPlan,
+  getToursWithin,
+  getDistances,
   // checkID,
   // confirmCreateTourFields,
 } = tourController;
@@ -35,6 +37,14 @@ router.use('/:tourId/reviews', reviewRouter);
 router.route('/top-5-cheap').get(aliasTopTours);
 
 router.route('/tour-stats').get(getTourStats);
+
+router
+  .route('/tours-within/:distance/center/:latlng/unit/:unit')
+  .get(getToursWithin);
+// /tours-distance?distance=233&center=-40,45&unit=mi
+// /tours-distance/233/center/-40,45/unit/mi
+
+router.route('/distances/:latlng/unit/:unit').get(getDistances);
 
 router
   .route('/monthly-plan/:year')

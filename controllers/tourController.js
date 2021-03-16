@@ -198,6 +198,81 @@ const getMonthlyPlan = catchAsync(async (req, res, next) => {
   });
 });
 
+// '/tours-within/:distance/center/:latlng/unit/:unit',
+// /tours-within/233/center/-40,45/unit/mi
+const getToursWithin = catchAsync(async (req, res, next) => {
+  const { distance, latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(',');
+  // distance needs to be in radians for geospatial query
+  const radius = unit === 'mi' ? distance / 3963.2 : distance / 6378.1;
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'Please provide latitude and longitude in the format lat,lng.',
+        400
+      )
+    );
+  }
+  // filter by tour start location
+  const tours = await Tour.find({
+    startLocation: { $geoWithin: { $centerSphere: [[lng, lat], radius] } },
+  });
+  console.log(distance, lat, lng, unit);
+  res.status(200).json({
+    status: 'success',
+    results: tours.length,
+    data: {
+      data: tours,
+    },
+  });
+});
+
+// /distances/:latlng/unit/:unit
+const getDistances = catchAsync(async (req, res, next) => {
+  const { latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(',');
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'Please provide latitude and longitude in the format lat,lng.',
+        400
+      )
+    );
+  }
+
+  const multiplier = unit === 'mi' ? 0.000621371 : 0.001;
+  const distances = await Tour.aggregate([
+    // one stage for geospatial aggregation
+    {
+      // geoNear must always be first in pipeline
+      // requires that one of our fields contain a geospatial index (i.e., startLocation: 2dsphere)
+      // by default uses the only one with geospatial index, need to specify if more than one
+      $geoNear: {
+        near: {
+          type: 'Point',
+          coordinates: [lng * 1, lat * 1], // multiply by 1 to convert to number
+        },
+        distanceField: 'distance',
+        distanceMultiplier: multiplier,
+      },
+    },
+    {
+      // which fields we want to keep for output
+      $project: {
+        distance: 1,
+        name: 1,
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      data: distances,
+    },
+  });
+});
+
 module.exports = {
   getAllTours,
   getTourStats,
@@ -209,4 +284,6 @@ module.exports = {
   // confirmCreateTourFields,
   updateTour,
   aliasTopTours,
+  getToursWithin,
+  getDistances,
 };
