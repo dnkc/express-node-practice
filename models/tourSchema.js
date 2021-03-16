@@ -128,6 +128,14 @@ const tourSchema = new mongoose.Schema(
   }
 );
 
+// 1 = sort by ascending
+// -1 = sort be descending
+// single index
+// tourSchema.index({ price: 1 });
+// compound index
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ slug: 1 });
+
 // virtual properties: i.e., conversions
 // virtual properties are NOT stored on the database
 // below: calculate how many weeks per tour

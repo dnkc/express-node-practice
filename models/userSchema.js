@@ -68,11 +68,8 @@ userSchema.pre('save', async function (next) {
   //delete confirm password field from database
   this.passwordConfirm = undefined; // only need password confirmation for signup validation, do not need to store it in the database
   // it is required as input, but that does not mean it is required to be in the DB
-  next();
-});
 
-// edit passwordChangedAt property once token is used to reset password
-userSchema.pre('save', function (next) {
+  // edit passwordChangedAt property once token is used to reset password
   if (!this.isModified('password') || this.isNew) return next();
 
   this.passwordChangedAt = Date.now() - 1000; // minus one second

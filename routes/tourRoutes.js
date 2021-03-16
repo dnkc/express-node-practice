@@ -36,18 +36,24 @@ router.route('/top-5-cheap').get(aliasTopTours);
 
 router.route('/tour-stats').get(getTourStats);
 
-router.route('/monthly-plan/:year').get(getMonthlyPlan);
+router
+  .route('/monthly-plan/:year')
+  .get(
+    isAuthenticated,
+    restrictTo('admin', 'lead-guide', 'guide'),
+    getMonthlyPlan
+  );
 
 // router.param('id', checkID);
 router
   .route('/')
-  .get(isAuthenticated, getAllTours)
-  .post(isAuthenticated, restrictTo('admin'), createTour);
+  .get(getAllTours)
+  .post(isAuthenticated, restrictTo('admin', 'lead-guide'), createTour);
 router
   .route('/:id')
   .get(getTour)
   .delete(isAuthenticated, restrictTo('admin', 'lead-guide'), deleteTour)
-  .patch(updateTour)
-  .delete(deleteTour);
+  .patch(isAuthenticated, restrictTo('admin', 'lead-guide'), updateTour)
+  .delete(isAuthenticated, restrictTo('admin', 'lead-guide'), deleteTour);
 
 module.exports = router;

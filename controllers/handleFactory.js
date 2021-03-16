@@ -100,6 +100,7 @@ const getAll = (Model) =>
     // can now copy this to other uses, and just do not include one (say .sort or .filter)
     // can chain methods bc this is returned in each
 
+    // const allDocs = await features.query.explain();
     const allDocs = await features.query;
     // possibly queries: query.sort.select().skip().limit()
 

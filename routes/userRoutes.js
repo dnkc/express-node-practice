@@ -20,16 +20,19 @@ router.post('/signup', signUp);
 router.post('/login', login);
 router.post('/forgotPassword', forgotPassword);
 router.patch('/resetPassword/:token', resetPassword);
-router.patch('/updateMyPassword', isAuthenticated, updatePassword);
-router.patch('/updateMe', isAuthenticated, userController.updateMe);
-router.delete('/deleteMe', isAuthenticated, userController.deleteMe);
+// PROTECTS ALL ROUTES BELOW IT WITH isAuthenticated AFTER LINE 24
+router.use(isAuthenticated);
+router.patch('/updateMyPassword', updatePassword);
+router.patch('/updateMe', userController.updateMe);
+router.delete('/deleteMe', userController.deleteMe);
 router.get(
   '/me',
   isAuthenticated,
   userController.getMe,
   userController.getUser
 );
-
+// BELOW ARE RESTRICTED TO isAuthenticated as well as ADMIN
+router.use(restrictTo('admin'));
 router
   .route('/')
   .get(tourController.getAllUsers)
@@ -39,6 +42,6 @@ router
   .route('/:id')
   .get(tourController.getUser)
   .patch(tourController.updateUser)
-  .delete(isAuthenticated, restrictTo('admin'), tourController.deleteUser);
+  .delete(tourController.deleteUser);
 
 module.exports = router;
